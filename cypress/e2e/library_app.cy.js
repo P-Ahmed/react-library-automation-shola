@@ -1,44 +1,39 @@
+import HomePage from "../pages/homePage"
+import UserDashboardPage from "../pages/userDashboardPage"
+
 describe("Test on React Library App", () => {
 
+  const homePage = new HomePage();
+  const userDashboardPage = new UserDashboardPage();
   const randomNumber = Math.floor((Math.random() * 99999) + 1);
   const userName = "jackson" + randomNumber;
   const password = "Password123";
+  const bookName = "Voice of War";
 
   before(() => {
     cy.visit("https://ts-e2e-challenge.netlify.app/list");
   })
 
   it("Valid sign-up", () => {
-    cy.xpath("//button[contains(text(),'Register')]").click();
-    cy.get('#username').type(userName);
-    cy.get('#password').type(password);
-    cy.get('[type="submit"]').click();
-    cy.xpath("//div[contains(text(),'" + userName + "')]").contains(userName);
-    cy.xpath("//button[contains(text(),'Logout')]").click();
+    homePage.doRegistration(userName, password);
+    userDashboardPage.verifyUserName(userName);
+    userDashboardPage.logout();
   })
 
   it("Invalid sign up", () => {
-    cy.xpath("//button[contains(text(),'Register')]").click();
-    cy.get('#username').type(userName);
-    cy.get('#password').type(password);
-    cy.get('[type="submit"]').click();
-    cy.xpath("//pre[contains(text(),'Cannot create a new user with the username')]").contains("Cannot create a new user with the username");
-    cy.xpath("//button").eq(2).click();
+    homePage.doRegistration(userName, password);
+    homePage.verifyUserNameIsExistInRegistration();
+    homePage.closingLoginOrRegistrationWindow();
   })
 
 
   it("Verifies that books are in reading list", () => {
-    cy.xpath("//button[contains(text(),'Login')]").click();
-    cy.get('#username').type(userName);
-    cy.get('#password').type(password);
-    cy.get('[type="submit"]').click();
-    cy.xpath("//a[contains(text(),'Discover')]").eq(0).click();
-    cy.get('#search').type("Voice of War");
-    cy.xpath("//button[@type='submit']").click();
-    cy.xpath("//h2[contains(text(),'Voice of War')]").click();
-    cy.xpath("//button[@aria-label='Add to list']").click();
+    homePage.doLogin(userName, password);
+    userDashboardPage.gotoDiscover();
+    userDashboardPage.searchForBook(bookName);
+    userDashboardPage.addBookInTheList(bookName);
     cy.wait(3000);
-    cy.xpath("//a[contains(text(),'Reading List')]").click();
-    cy.xpath("//h2[contains(text(),'Voice of War')]").contains("Voice of War");
+    userDashboardPage.gotoReadingList();
+    userDashboardPage.verifyBookIsAddedInReadingList(bookName);
   })
 })
